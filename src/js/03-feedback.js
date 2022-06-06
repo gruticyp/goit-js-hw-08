@@ -1,55 +1,45 @@
-'use strict';
 import throttle from 'lodash.throttle';
 
-const formEl = document.querySelector('.feedback-form');
-const FEEDBACK_FORM_KEY = 'feedback-form-state';
-const feedbackFormState = {};
+const formRefEl = document.querySelector('.feedback-form');
+const FORM_LOCAL_STORAGE_KEY = 'feedback-form-state';
+const formData = {};
 
-const fillFormData = form => {
-    const formDataFromLacalStorage = JSON.parse(
-        localStorage.getItem(FEEDBACK_FORM_KEY)
-    );
+const fillFormRefs = form => {
+  const formDataFromLocalStorage = JSON.parse(
+    localStorage.getItem(FORM_LOCAL_STORAGE_KEY)
+  );
+  
 
-    const formEl = form.elements;
-
-    for (const key in formDataFromLacalStorage) {
-        if (formDataFromLacalStorage.hasOwnProperty(key)) {
-            formEl[key].value = formDataFromLacalStorage[key];
-        }
+  for (const key in formDataFromLocalStorage) {
+    if (formDataFromLocalStorage.hasOwnProperty(key)) {
+      form.elements[key].value = formDataFromLocalStorage[key];
     }
+  }
 };
 
-fillFormData(formEl);
+fillFormRefs(formRefEl);
 
-const onElementFocusChange = throttle(event => {
-    const target = event.target.value;
-    const elName = event.target.name;
+const onFormRefInput = e => {
+  
 
-    feedbackFormState[elName]  = target;
+  formData[e.target.name] = e.target.value;
 
-    localStorage.setItem(FEEDBACK_FORM_KEY, JSON.stringify(feedbackFormState));
-}, 500);
-
-
-const onFormSubmit = event => {
-    event.preventDefault();
-
-    if(event.target.message.value === '' || event.target.email.value === '') {
-        alert('нужно заполнить поля');
-        return;
-    }
-
-    const inputsEl = {
-        email: formEl.email.value,
-        message: formEl.message.value,
-    };
-
-    console.log(inputsEl);
-
-    localStorage.removeItem(FEEDBACK_FORM_KEY);
-
-    event.target.reset();
+  localStorage.setItem(FORM_LOCAL_STORAGE_KEY, JSON.stringify(formData));
 };
 
-formEl.addEventListener('change', onElementFocusChange);
-formEl.addEventListener('submit', onFormSubmit);
+const onSubmitRef = e => {
+  e.preventDefault();
+
+  const formValues = {
+    email: formRefEl.email.value,
+    message: formRefEl.message.value,
+  };
+
+  console.log(formValues);
+
+  e.currentTarget.reset();
+  localStorage.removeItem(FORM_LOCAL_STORAGE_KEY);
+};
+
+formRefEl.addEventListener('input', throttle(onFormRefInput, 500));
+formRefEl.addEventListener('submit', onSubmitRef);
